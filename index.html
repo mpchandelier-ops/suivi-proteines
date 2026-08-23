@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="shortcut icon" type="image/png" href="icon-192.png">
+<meta name="theme-color" content="#233227">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Mon suivi protéines</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap');
+
+:root{
+  --ink:#233227;
+  --oat:#F3EEE1;
+  --sage:#7C9885;
+  --sage-dark:#5C7A64;
+  --plum:#8C4B5C;
+  --plum-dark:#6E3A48;
+  --gold:#C99A3C;
+  --line:#DCD4BE;
+  --card:#FBF8F0;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--oat);
+  color:var(--ink);
+  font-family:'Work Sans', -apple-system, sans-serif;
+  padding-bottom:180px;
+}
+h1,h2,h3,.display{
+  font-family:'Fraunces', Georgia, serif;
+}
+.wrap{max-width:760px;margin:0 auto;padding:28px 18px;}
+header{margin-bottom:22px;}
+header .eyebrow{
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  font-size:12px;
+  color:var(--sage-dark);
+  font-weight:600;
+}
+header h1{
+  font-size:32px;
+  font-weight:600;
+  margin:4px 0 6px;
+  color:var(--ink);
+}
+header p.sub{
+  margin:0;
+  color:#5A6355;
+  font-size:14.5px;
+  line-height:1.5;
+  max-width:56ch;
+}
+
+.profile-strip{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:16px;
+}
+.chip{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:100px;
+  padding:6px 13px;
+  font-size:13px;
+  color:var(--ink);
+}
+
+.target-card{
+  background:var(--ink);
+  color:var(--oat);
+  border-radius:18px;
+  padding:22px 22px 18px;
+  margin:22px 0 26px;
+}
+.target-card .row{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.target-card .big{
+  font-family:'Fraunces', serif;
+  font-size:44px;
+  font-weight:700;
+  line-height:1;
+}
+.target-card .big span{font-size:20px;font-weight:400;opacity:0.75;}
+.bar-outer{
+  height:12px;
+  background:rgba(255,255,255,0.15);
+  border-radius:100px;
+  margin:14px 0 10px;
+  overflow:hidden;
+}
+.bar-inner{
+  height:100%;
+  background:linear-gradient(90deg, var(--sage), var(--gold));
+  border-radius:100px;
+  transition:width .3s ease;
+}
+.target-card .note{font-size:12.5px;opacity:0.8;line-height:1.5;}
+.target-card .slider-row{
+  display:flex;align-items:center;gap:10px;margin-top:14px;
+  font-size:13px;
+}
+.target-card input[type=range]{flex:1;accent-color:var(--gold);}
+
+.tabs{
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+  padding-bottom:4px;
+  margin-bottom:16px;
+  scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{
+  flex:none;
+  padding:8px 15px;
+  border-radius:100px;
+  border:1px solid var(--line);
+  background:var(--card);
+  font-size:13.5px;
+  font-weight:500;
+  cursor:pointer;
+  color:var(--ink);
+  white-space:nowrap;
+}
+.tab.active{
+  background:var(--plum);
+  border-color:var(--plum);
+  color:#fff;
+}
+
+.cat-note{
+  font-size:13px;
+  color:#5A6355;
+  margin:-6px 0 14px;
+  line-height:1.5;
+}
+
+.food-list{display:flex;flex-direction:column;gap:8px;margin-bottom:30px;}
+.food-item{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.food-item .info{flex:1;min-width:0;}
+.food-item .name{font-weight:600;font-size:14.5px;}
+.food-item .meta{font-size:12.5px;color:#6b7466;margin-top:2px;}
+.food-item .protein-tag{
+  font-family:'Fraunces', serif;
+  font-weight:600;
+  color:var(--plum-dark);
+  font-size:15px;
+  white-space:nowrap;
+}
+.add-btn{
+  flex:none;
+  width:34px;height:34px;
+  border-radius:50%;
+  border:none;
+  background:var(--sage-dark);
+  color:#fff;
+  font-size:19px;
+  cursor:pointer;
+  line-height:1;
+  display:flex;align-items:center;justify-content:center;
+}
+.add-btn:active{transform:scale(0.92);}
+
+footer.log{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  background:var(--card);
+  border-top:1px solid var(--line);
+  box-shadow:0 -6px 20px rgba(0,0,0,0.06);
+  max-height:170px;
+  overflow-y:auto;
+}
+.log-inner{max-width:760px;margin:0 auto;padding:12px 18px 16px;}
+.log-head{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:13px;font-weight:600;color:var(--ink);margin-bottom:8px;
+}
+.log-head .clear{
+  font-weight:500;color:var(--plum-dark);cursor:pointer;font-size:12.5px;
+}
+.log-items{display:flex;flex-wrap:wrap;gap:6px;}
+.log-chip{
+  background:var(--oat);
+  border:1px solid var(--line);
+  border-radius:100px;
+  padding:4px 6px 4px 12px;
+  font-size:12.5px;
+  display:flex;align-items:center;gap:6px;
+}
+.log-chip .x{
+  cursor:pointer;
+  width:18px;height:18px;
+  border-radius:50%;
+  background:var(--line);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;
+  color:var(--ink);
+}
+.empty-log{font-size:12.5px;color:#8a9284;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Suivi personnel</div>
+    <h1>Mes protéines du jour</h1>
+    <p class="sub">Réparti par catégorie : viandes &amp; charcuterie, poissons, légumineuses, fromages &amp; laitages, céréales, et les sources qu'on oublie souvent.</p>
+    <div class="profile-strip">
+      <div class="chip">43 ans · 1m76 · 56 kg</div>
+      <div class="chip">1h de marche/jour</div>
+      <div class="chip">Périménopause</div>
+    </div>
+  </header>
+
+  <div class="target-card">
+    <div class="row">
+      <div>
+        <div style="font-size:12.5px;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">Aujourd'hui</div>
+        <div class="big" id="totalDisplay">0<span> g consommés</span></div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:12.5px;opacity:.75;">Objectif</div>
+        <div class="big" id="targetDisplay" style="font-size:26px;">90<span> g</span></div>
+      </div>
+    </div>
+    <div class="bar-outer"><div class="bar-inner" id="barInner" style="width:0%;"></div></div>
+    <div class="note">En périménopause, les besoins en protéines augmentent (≈1,4 à 1,8 g/kg) pour préserver masse musculaire et densité osseuse — surtout avec une activité quotidienne comme votre marche. Ceci est un repère général, pas un avis médical individualisé : un.e diététicien.ne peut affiner ce chiffre pour vous.</div>
+    <div class="slider-row">
+      <span>1,2 g/kg</span>
+      <input type="range" id="targetSlider" min="67" max="112" value="90" step="1">
+      <span>2,0 g/kg</span>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="cat-note" id="catNote"></div>
+  <div class="food-list" id="foodList"></div>
+</div>
+
+<footer class="log">
+  <div class="log-inner">
+    <div class="log-head">
+      <span>Aujourd'hui — <span id="logCount">0</span> aliment(s)</span>
+      <span class="clear" id="clearLog">tout effacer</span>
+    </div>
+    <div class="log-items" id="logItems"></div>
+  </div>
+</footer>
+
+<script>
+const DATA = {
+  "Viandes & charcuterie": {
+    note: "Portions cuites pour les viandes fraîches ; portions telles quelles pour la charcuterie.",
+    items: [
+      {n:"Blanc de poulet", p100:31, portion:"120 g cuit", pg:37},
+      {n:"Blanc de dinde", p100:29, portion:"120 g cuit", pg:35},
+      {n:"Steak haché 5% MG", p100:26, portion:"120 g cuit", pg:31},
+      {n:"Filet de porc", p100:27, portion:"120 g cuit", pg:32},
+      {n:"Gigot d'agneau", p100:25, portion:"120 g cuit", pg:30},
+      {n:"Lapin", p100:21, portion:"120 g cuit", pg:25},
+      {n:"Jambon blanc", p100:18, portion:"2 tranches (50 g)", pg:9},
+      {n:"Jambon cru (Bayonne)", p100:24, portion:"30 g", pg:7},
+      {n:"Saucisson sec", p100:26, portion:"30 g", pg:8},
+      {n:"Bacon / lardons", p100:27, portion:"30 g", pg:8},
+      {n:"Chorizo", p100:24, portion:"30 g", pg:7},
+    ]
+  },
+  "Poissons": {
+    note: "Une bonne alternance avec la viande — souvent oubliés dans les comptes de protéines.",
+    items: [
+      {n:"Saumon", p100:20, portion:"120 g cuit", pg:24},
+      {n:"Cabillaud / colin", p100:18, portion:"120 g cuit", pg:22},
+      {n:"Thon au naturel (boîte)", p100:24, portion:"1 boîte égouttée (112 g)", pg:27},
+      {n:"Sardines à l'huile", p100:21, portion:"1 boîte égouttée (90 g)", pg:19},
+      {n:"Crevettes cuites", p100:21, portion:"100 g", pg:21},
+    ]
+  },
+  "Légumineuses": {
+    note: "Poids une fois cuites. Une portion de 200 g cuite correspond à environ 70-80 g de légumineuses sèches au départ.",
+    items: [
+      {n:"Lentilles corail", p100:7.6, portion:"200 g cuites", pg:15},
+      {n:"Lentilles vertes", p100:9, portion:"200 g cuites", pg:18},
+      {n:"Haricots rouges", p100:8.7, portion:"200 g cuits", pg:17},
+      {n:"Haricots blancs", p100:8, portion:"200 g cuits", pg:16},
+      {n:"Pois chiches", p100:8.9, portion:"200 g cuits", pg:18},
+      {n:"Edamame écossés", p100:11, portion:"100 g cuits", pg:11},
+    ]
+  },
+  "Fromages & laitages": {
+    note: "Vos petits-suisses Gervais sont calculés directement depuis l'étiquette du pot (9,1 g/100 g).",
+    items: [
+      {n:"Comté / Emmental", p100:28, portion:"30 g", pg:8},
+      {n:"Chèvre (bûche)", p100:20, portion:"30 g", pg:6},
+      {n:"Camembert", p100:20, portion:"30 g", pg:6},
+      {n:"Mozzarella", p100:18, portion:"30 g", pg:5},
+      {n:"Fromage blanc 20%", p100:8, portion:"150 g", pg:12},
+      {n:"Petit-suisse Gervais nature", p100:9.1, portion:"1 pot (60 g)", pg:5.5},
+      {n:"Yaourt maison (lait entier)", p100:3.5, portion:"1 pot (125 g)", pg:4.4},
+      {n:"Yaourt grec", p100:6, portion:"1 pot (125 g)", pg:7.5},
+      {n:"Skyr", p100:10, portion:"150 g", pg:15},
+      {n:"Lait demi-écrémé", p100:3.3, portion:"200 ml", pg:6.6},
+    ]
+  },
+  "Céréales": {
+    note: "Poids cuit sauf pain et flocons (poids sec). Le blanc/complet change peu la protéine, surtout les fibres et le sucre.",
+    items: [
+      {n:"Riz complet", p100:2.7, portion:"150 g cuit", pg:4},
+      {n:"Riz blanc", p100:2.5, portion:"150 g cuit", pg:3.8},
+      {n:"Quinoa", p100:4.4, portion:"150 g cuit", pg:6.6},
+      {n:"Pâtes complètes", p100:5.5, portion:"150 g cuites", pg:8.3},
+      {n:"Pâtes blanches", p100:5, portion:"150 g cuites", pg:7.5},
+      {n:"Boulgour", p100:3.5, portion:"150 g cuit", pg:5.3},
+      {n:"Semoule", p100:3.8, portion:"150 g cuite", pg:5.7},
+      {n:"Flocons d'avoine", p100:13, portion:"40 g secs", pg:5.2},
+      {n:"Pain complet", p100:8, portion:"2 tranches (60 g)", pg:4.8},
+      {n:"Pain blanc", p100:8, portion:"2 tranches (60 g)", pg:4.8},
+    ]
+  },
+  "Plats maison": {
+    note: "Plats composés — l'apport dépend de votre recette, ceci est une estimation pour une version classique (viande, béchamel, pâtes, fromage).",
+    items: [
+      {n:"Lasagnes maison", p100:6.7, portion:"1 portion (300 g)", pg:20},
+    ]
+  },
+  "Auto souvent oubliées": {
+    note: "Ce à quoi on ne pense pas — dont votre cappuccino Dolce Gusto, estimé d'après les capsules lait + café du commerce.",
+    items: [
+      {n:"Œuf entier", p100:null, portion:"1 œuf (50 g)", pg:6.3},
+      {n:"Beurre de cacahuète", p100:25, portion:"30 g (2 c. à s.)", pg:7.5},
+      {n:"Cacahuètes", p100:25, portion:"30 g (poignée)", pg:7.5},
+      {n:"Amandes", p100:21, portion:"30 g (poignée)", pg:6.3},
+      {n:"Noix de cajou", p100:18, portion:"30 g (poignée)", pg:5.4},
+      {n:"Tofu ferme", p100:8, portion:"150 g", pg:12},
+      {n:"Cappuccino Dolce Gusto", p100:null, portion:"1 tasse (~240 ml)", pg:3.6},
+      {n:"Café au lait maison", p100:null, portion:"200 ml lait demi-écrémé", pg:6.6},
+    ]
+  }
+};
+
+const catKeys = Object.keys(DATA);
+let activeCat = catKeys[0];
+let today = new Date().toISOString().slice(0,10);
+let log = [];
+let target = 90;
+
+const tabsEl = document.getElementById('tabs');
+const foodListEl = document.getElementById('foodList');
+const catNoteEl = document.getElementById('catNote');
+const logItemsEl = document.getElementById('logItems');
+const logCountEl = document.getElementById('logCount');
+const totalDisplay = document.getElementById('totalDisplay');
+const targetDisplay = document.getElementById('targetDisplay');
+const barInner = document.getElementById('barInner');
+const slider = document.getElementById('targetSlider');
+
+function renderTabs(){
+  tabsEl.innerHTML = '';
+  catKeys.forEach(k=>{
+    const b = document.createElement('button');
+    b.className = 'tab' + (k===activeCat ? ' active' : '');
+    b.textContent = k;
+    b.onclick = ()=>{ activeCat = k; renderTabs(); renderFoods(); };
+    tabsEl.appendChild(b);
+  });
+}
+
+function renderFoods(){
+  const cat = DATA[activeCat];
+  catNoteEl.textContent = cat.note;
+  foodListEl.innerHTML = '';
+  cat.items.forEach(item=>{
+    const row = document.createElement('div');
+    row.className = 'food-item';
+    row.innerHTML = `
+      <div class="info">
+        <div class="name">${item.n}</div>
+        <div class="meta">${item.portion}${item.p100 ? ' · ' + item.p100 + ' g/100g' : ''}</div>
+      </div>
+      <div class="protein-tag">${item.pg} g</div>
+      <button class="add-btn" title="Ajouter">+</button>
+    `;
+    row.querySelector('.add-btn').onclick = ()=> addToLog(item);
+    foodListEl.appendChild(row);
+  });
+}
+
+function addToLog(item){
+  log.push({id: Date.now()+Math.random(), n:item.n, pg:item.pg, portion:item.portion});
+  saveLog();
+  renderLog();
+}
+
+function removeFromLog(id){
+  log = log.filter(l=>l.id!==id);
+  saveLog();
+  renderLog();
+}
+
+function renderLog(){
+  const total = log.reduce((s,l)=>s+l.pg,0);
+  totalDisplay.innerHTML = Math.round(total*10)/10 + '<span> g consommés</span>';
+  const pct = Math.min(100, Math.round((total/target)*100));
+  barInner.style.width = pct + '%';
+  logCountEl.textContent = log.length;
+  logItemsEl.innerHTML = '';
+  if(log.length===0){
+    logItemsEl.innerHTML = "<div class=\"empty-log\">Rien d'ajouté pour l'instant — touchez le + à côté d'un aliment.</div>";
+    return;
+  }
+  log.forEach(l=>{
+    const chip = document.createElement('div');
+    chip.className = 'log-chip';
+    chip.innerHTML = `<span>${l.n} · ${l.pg} g</span><span class="x">×</span>`;
+    chip.querySelector('.x').onclick = ()=> removeFromLog(l.id);
+    logItemsEl.appendChild(chip);
+  });
+}
+
+function saveLog(){
+  try{
+    localStorage.setItem('proteines:'+today, JSON.stringify(log));
+  }catch(e){ console.error('Erreur de sauvegarde du journal', e); }
+}
+
+function saveTarget(){
+  try{
+    localStorage.setItem('proteines:target', JSON.stringify(target));
+  }catch(e){ console.error("Erreur de sauvegarde de l'objectif", e); }
+}
+
+function loadAll(){
+  try{
+    const res = localStorage.getItem('proteines:'+today);
+    log = res ? JSON.parse(res) : [];
+  }catch(e){ log = []; }
+  try{
+    const res2 = localStorage.getItem('proteines:target');
+    target = res2 ? JSON.parse(res2) : 90;
+  }catch(e){ target = 90; }
+  slider.value = target;
+  targetDisplay.innerHTML = target + '<span> g</span>';
+  renderTabs();
+  renderFoods();
+  renderLog();
+}
+
+slider.oninput = ()=>{
+  target = parseInt(slider.value,10);
+  targetDisplay.innerHTML = target + '<span> g</span>';
+  renderLog();
+  saveTarget();
+};
+
+document.getElementById('clearLog').onclick = ()=>{
+  log = [];
+  saveLog();
+  renderLog();
+};
+
+loadAll();
+</script>
+</body>
+</html>
