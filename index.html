@@ -146,6 +146,23 @@ header p.sub{
 .history-row .pct{font-size:11.5px;color:#8a9284;margin-left:6px;}
 .history-empty{font-size:13px;color:#8a9284;padding:10px 0;}
 
+.back-today{
+  background:#EFE1C9;
+  border:1px solid #DDC791;
+  border-radius:12px;
+  padding:10px 14px;
+  font-size:13px;
+  color:#5A4A22;
+  margin:-14px 0 22px;
+}
+.back-today .back-link{
+  text-decoration:underline;
+  cursor:pointer;
+  font-weight:600;
+}
+.history-row{cursor:pointer;}
+.history-row:hover{background:rgba(0,0,0,0.02);}
+
 .tabs{
   display:flex;
   gap:6px;
@@ -283,7 +300,7 @@ footer.log{
   <div class="target-card">
     <div class="row">
       <div>
-        <div style="font-size:12.5px;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">Aujourd'hui</div>
+        <div style="font-size:12.5px;text-transform:uppercase;letter-spacing:.08em;opacity:.75;" id="dayLabel">Aujourd'hui</div>
         <div class="big" id="totalDisplay">0<span> g consommés</span></div>
       </div>
       <div style="text-align:right;">
@@ -299,6 +316,10 @@ footer.log{
       <span>2,0 g/kg</span>
     </div>
     <div class="history-toggle" id="historyToggle">Voir l'historique des jours précédents ›</div>
+  </div>
+
+  <div class="back-today" id="backToday" style="display:none;">
+    ✎ Vous modifiez le <span id="editingDateLabel"></span> — <span class="back-link" id="backTodayLink">revenir à aujourd'hui</span>
   </div>
 
   <div class="history-panel" id="historyPanel" style="display:none;">
@@ -317,7 +338,7 @@ footer.log{
 <footer class="log">
   <div class="log-inner">
     <div class="log-head">
-      <span>Aujourd'hui — <span id="logCount">0</span> aliment(s)</span>
+      <span><span id="logDayLabel">Aujourd'hui</span> — <span id="logCount">0</span> aliment(s)</span>
       <span class="clear" id="clearLog">tout effacer</span>
     </div>
     <div class="log-items" id="logItems"></div>
@@ -367,6 +388,7 @@ const DATA = {
     note: "Vos petits-suisses Gervais sont calculés directement depuis l'étiquette du pot (9,1 g/100 g).",
     items: [
       {n:"Comté / Emmental", p100:28, portion:"30 g", pg:8},
+      {n:"Brebis (type Ossau-Iraty)", p100:25, portion:"30 g", pg:7.5},
       {n:"Chèvre (bûche)", p100:20, portion:"30 g", pg:6},
       {n:"Camembert", p100:20, portion:"30 g", pg:6},
       {n:"Mozzarella", p100:18, portion:"30 g", pg:5},
@@ -391,6 +413,7 @@ const DATA = {
       {n:"Flocons d'avoine", p100:13, portion:"40 g secs", pg:5.2},
       {n:"Pain complet", p100:8, portion:"2 tranches (60 g)", pg:4.8},
       {n:"Pain blanc", p100:8, portion:"2 tranches (60 g)", pg:4.8},
+      {n:"Gnocchi", p100:3, portion:"200 g cuits", pg:6},
     ]
   },
   "Plats maison": {
@@ -416,7 +439,8 @@ const DATA = {
 
 const catKeys = Object.keys(DATA);
 let activeCat = catKeys[0];
-let today = new Date().toISOString().slice(0,10);
+const todayStr = new Date().toISOString().slice(0,10);
+let selectedDate = todayStr;
 let log = [];
 let target = 90;
 
@@ -501,7 +525,7 @@ function renderLog(){
 
 function saveLog(){
   try{
-    localStorage.setItem('proteines:'+today, JSON.stringify(log));
+    localStorage.setItem('proteines:'+selectedDate, JSON.stringify(log));
   }catch(e){ console.error('Erreur de sauvegarde du journal', e); }
 }
 
@@ -511,11 +535,32 @@ function saveTarget(){
   }catch(e){ console.error("Erreur de sauvegarde de l'objectif", e); }
 }
 
-function loadAll(){
+const fmtLong = new Intl.DateTimeFormat('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+
+function updateDayLabels(){
+  const isToday = selectedDate === todayStr;
+  const niceLabel = isToday ? "Aujourd'hui" : fmtLong.format(new Date(selectedDate + 'T12:00:00'));
+  document.getElementById('dayLabel').textContent = niceLabel;
+  document.getElementById('logDayLabel').textContent = niceLabel;
+  const banner = document.getElementById('backToday');
+  if(isToday){
+    banner.style.display = 'none';
+  }else{
+    banner.style.display = 'block';
+    document.getElementById('editingDateLabel').textContent = niceLabel;
+  }
+}
+
+function loadLogForSelectedDate(){
   try{
-    const res = localStorage.getItem('proteines:'+today);
+    const res = localStorage.getItem('proteines:'+selectedDate);
     log = res ? JSON.parse(res) : [];
   }catch(e){ log = []; }
+  updateDayLabels();
+  renderLog();
+}
+
+function loadAll(){
   try{
     const res2 = localStorage.getItem('proteines:target');
     target = res2 ? JSON.parse(res2) : 90;
@@ -524,8 +569,17 @@ function loadAll(){
   targetDisplay.innerHTML = target + '<span> g</span>';
   renderTabs();
   renderFoods();
-  renderLog();
+  loadLogForSelectedDate();
 }
+
+function selectDay(dateStr){
+  selectedDate = dateStr;
+  loadLogForSelectedDate();
+  document.getElementById('historyPanel').style.display = 'none';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('backTodayLink').onclick = ()=> selectDay(todayStr);
 
 slider.oninput = ()=>{
   target = parseInt(slider.value,10);
@@ -565,11 +619,12 @@ function renderHistory(){
   list.innerHTML = '';
   rows.forEach(r=>{
     const d = new Date(r.dateStr + 'T12:00:00');
-    const label = r.dateStr === today ? "Aujourd'hui" : fmt.format(d);
+    const label = r.dateStr === todayStr ? "Aujourd'hui" : fmt.format(d);
     const pct = Math.round((r.total/target)*100);
     const row = document.createElement('div');
     row.className = 'history-row';
     row.innerHTML = `<span class="d">${label}</span><span><span class="g">${Math.round(r.total*10)/10} g</span><span class="pct">(${pct}% de l'objectif)</span></span>`;
+    row.onclick = ()=> selectDay(r.dateStr);
     list.appendChild(row);
   });
 }
